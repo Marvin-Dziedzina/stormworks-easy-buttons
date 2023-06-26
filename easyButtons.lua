@@ -1,21 +1,21 @@
 __buttons = {}
 
---- @param x number
----@param y number
----@param width number
----@param height number
----@param text string
----@param target function
----@param frameColor table = {255, 255, 255}
----@param innerColor table | nil
----@param pressedColor table | nil
----@param activeColor table | nil
----@param textColor table = {255, 255, 255}
----@param isToggle boolean | nil = false
----@param horizontalAlign number -1: left; 0: center; 1: right
----@param verticalAlign number -1: top; 0: center; 1: bottom
+---@param x number The left upper coordinate in px
+---@param y number The left upper coordinate in px
+---@param width number The width of the button
+---@param height number The height of the button
+---@param text string The text of the button
+---@param target function The function that should get executed if clicked or toggled
+---@param frameColor table = {255, 255, 255}; RGB or RGBA colors in a table
+---@param innerColor table | nil RGB or RGBA colors in a table
+---@param pressedColor table | nil RGB or RGBA colors in a table just for push button
+---@param activeColor table | nil RGB or RGBA colors in a table just for toggle button
+---@param textColor table = {255, 255, 255}; RGB or RGBA colors in a table
+---@param isToggle boolean | nil = false; If the button should be a push or a toggle button
+---@param horizontalTextAlign number -1: left; 0: center; 1: right
+---@param verticalTextAlign number -1: top; 0: center; 1: bottom
 function newButton(x, y, width, height, text, target, frameColor, innerColor, pressedColor, activeColor, textColor,
-                   isToggle, horizontalAlign, verticalAlign)
+                   isToggle, horizontalTextAlign, verticalTextAlign)
     if x == nil or y == nil or width == nil or height == nil or text == nil or target == nil then
         return
     end
@@ -31,96 +31,105 @@ function newButton(x, y, width, height, text, target, frameColor, innerColor, pr
         isToggle = false
     end
 
-    if horizontalAlign == nil then
-        horizontalAlign = 0
+    if horizontalTextAlign == nil then
+        horizontalTextAlign = 0
     end
-    if verticalAlign == nil then
-        verticalAlign = 0
+    if verticalTextAlign == nil then
+        verticalTextAlign = 0
     end
 
-    buttonNew = {
-        ["x"] = x,
-        ["y"] = y,
-        ["width"] = width,
-        ["height"] = height,
-        ["text"] = text,
-        ["isToggle"] = isToggle,
-        ["horizontalAlign"] = horizontalAlign,
-        ["verticalAlign"] = verticalAlign,
-        ["target"] = target,
-        ["frameColor"] = frameColor,
-        ["innerColor"] = innerColor,
-        ["pressedColor"] = pressedColor,
-        ["activeColor"] = activeColor,
-        ["textColor"] = textColor,
-        ["isPressed"] = false,
-        ["isHeld"] = false,
-        ["isActive"] = false
+    local buttonNew = {
+        {
+            ["x"] = x,
+            ["y"] = y,
+            ["width"] = width,
+            ["height"] = height,
+            ["text"] = text,
+            ["isToggle"] = isToggle,
+            ["horizontalAlign"] = horizontalTextAlign,
+            ["verticalAlign"] = verticalTextAlign,
+            ["target"] = target,
+            ["frameColor"] = frameColor,
+            ["innerColor"] = innerColor,
+            ["pressedColor"] = pressedColor,
+            ["activeColor"] = activeColor,
+            ["textColor"] = textColor,
+            ["isPressed"] = false,
+            ["isHeld"] = false,
+            ["isActive"] = false
+        }
+
     }
 
     table.insert(__buttons, buttonNew)
 end
 
-function buttonTick(isPressed, touchX, touchY)
+---@param isPressed boolean If the screen was pressed
+---@param touchX number The x coordinate in px where the screen got pressed
+---@param touchY number The y coordinate in px where the screen got pressed
+function onTickButtons(isPressed, touchX, touchY)
     for key, button in pairs(__buttons) do
+        button = button[key]
         -- check if button is pressed
         isBtnPressed = isPressed and
             __isPointInRectangle(touchX, touchY, button["x"], button["y"], button["width"], button["height"])
-        __buttons[key]["isPressed"] = isBtnPressed
+        button["isPressed"] = isBtnPressed
 
         -- check if button pressed
         if isBtnPressed then
             -- just execute when button is freshly pushed
             if not button["isHeld"] then
-                -- function of button
+                -- isActive true
                 if button["isToggle"] then
-                    __buttons[key]["isActive"] = not button["isActive"]
+                    button["isActive"] = not button["isActive"]
                 else
-                    __buttons[key]["isActive"] = true
-                    button["target"]()
-                end
-            else
-                if not button["isToggle"] then
-                    __buttons[key]["isActive"] = false
+                    button["isActive"] = true
                 end
             end
-            __buttons[key]["isHeld"] = true
+            button["isHeld"] = true
 
             -- check if button released
-        elseif not isBtnPressed and button[key]["isHeld"] then
-            __buttons[key]["isHeld"] = false
+        elseif not isBtnPressed and button["isHeld"] then
+            button["isHeld"] = false
         end
 
-        -- execute constant if toggle button and active
-        if button["isToggle"] and button["isActive"] then
+        -- execute if active
+        if button["isActive"] then
             button["target"]()
+
+            -- reset isActive when after one
+            if not button["isToggle"] then
+                button["isActive"] = false
+            end
         end
     end
 end
 
-function drawButton()
+--- Draw all buttons on the specified positions and colors
+function onDrawButtons()
     for key, button in pairs(__buttons) do
+        button = button[key]
         -- button background
         if button["innerColor"] ~= nil then
-            -- decides the color after is isActive and isToggle
-            if not button["isActive"] then
-                screen.setColor(button["innerColor"].unpack)
-            elseif button["isActive"] then
-                -- set color when active
-                if button["isToggle"] then
-                    -- check if active color exists
-                    if not button["activeColor"] == nil then
-                        screen.setColor(button["activeColor"].unpack)
-                    else
-                        screen.setColor(button["innerColor"].unpack)
-                    end
+            -- toggle
+            if button["isToggle"] and not button["isActive"] then
+                screen.setColor(table.unpack(button["innerColor"]))
+            elseif button["isToggle"] and button["isActive"] then
+                if button["isActive"] and button["activeColor"] ~= nil and button["isToggle"] then
+                    screen.setColor(table.unpack(button["activeColor"]))
+                end
+            end
+
+            -- push
+            if not button["isToggle"] and not button["isPressed"] then
+                -- inactive
+                screen.setColor(table.unpack(button["innerColor"]))
+            elseif not button["isToggle"] and button["isPressed"] then
+                -- check if pressed color exists and apply it
+                if button["isPressed"] and button["pressedColor"] ~= nil then
+                    screen.setColor(table.unpack(button["pressedColor"]))
                 else
-                    -- check if pressed color exists
-                    if not button["pressedColor"] == nil then
-                        screen.setColor(button["pressedColor"].unpack)
-                    else
-                        screen.setColor(button["innerColor"].unpack)
-                    end
+                    screen.setColor(table.unpack(button["innerColor"]))
                 end
             end
 
@@ -128,12 +137,12 @@ function drawButton()
         end
 
         -- button frame
-        screen.setColor(button["frameColor"].unpack)
+        screen.setColor(table.unpack(button["frameColor"]))
         screen.drawRect(button["x"], button["y"], button["width"], button["height"])
 
         -- button text
-        screen.setColor(button["textColor"].unpack)
-        screen.drawTextBox(button["x"], button["y"], button["width"], button["height"], button["text"],
+        screen.setColor(table.unpack(button["textColor"]))
+        screen.drawTextBox(button["x"] + 1, button["y"] + 1, button["width"] + 1, button["height"], button["text"],
             button["horizontalAlign"], button["verticalAlign"])
     end
 end
