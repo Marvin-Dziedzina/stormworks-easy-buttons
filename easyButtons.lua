@@ -1,4 +1,4 @@
-__buttons = {}
+local __buttons = {}
 
 ---@param x number The left upper coordinate in px
 ---@param y number The left upper coordinate in px
@@ -6,6 +6,7 @@ __buttons = {}
 ---@param height number The height of the button
 ---@param text string The text of the button
 ---@param target function The function that should get executed if clicked or toggled
+---@param args table|nil Input a table with the parameters in right order. Example: {246, 900}
 ---@param frameColor table = {255, 255, 255}; RGB or RGBA colors in a table
 ---@param innerColor table | nil RGB or RGBA colors in a table
 ---@param pressedColor table | nil RGB or RGBA colors in a table just for push button
@@ -14,9 +15,9 @@ __buttons = {}
 ---@param isToggle boolean | nil = false; If the button should be a push or a toggle button
 ---@param horizontalTextAlign number -1: left; 0: center; 1: right
 ---@param verticalTextAlign number -1: top; 0: center; 1: bottom
----@param buttonId string | nil If you want to identify this special button. Can also be used on more buttons to identify groups.
-function newButton(x, y, width, height, text, target, frameColor, innerColor, pressedColor, activeColor, textColor,
-                   isToggle, horizontalTextAlign, verticalTextAlign, buttonId)
+---@param tag string | nil If you want to identify this special button. Can also be used on more buttons to identify groups.
+function newButton(x, y, width, height, text, target, args, frameColor, innerColor, pressedColor, activeColor, textColor,
+                   isToggle, horizontalTextAlign, verticalTextAlign, tag)
     if x == nil or y == nil or width == nil or height == nil or text == nil or target == nil then
         return
     end
@@ -28,41 +29,39 @@ function newButton(x, y, width, height, text, target, frameColor, innerColor, pr
     verticalTextAlign = verticalTextAlign or 0
 
     local buttonNew = {
-        {
-            ["buttonId"] = buttonId,
-            ["x"] = x,
-            ["y"] = y,
-            ["width"] = width,
-            ["height"] = height,
-            ["text"] = text,
-            ["isToggle"] = isToggle,
-            ["horizontalAlign"] = horizontalTextAlign,
-            ["verticalAlign"] = verticalTextAlign,
-            ["target"] = target,
-            ["frameColor"] = frameColor,
-            ["innerColor"] = innerColor,
-            ["pressedColor"] = pressedColor,
-            ["activeColor"] = activeColor,
-            ["textColor"] = textColor,
-            ["isPressed"] = false,
-            ["isHeld"] = false,
-            ["isActive"] = false
-        }
-
+        ["tag"] = tag,
+        ["x"] = x,
+        ["y"] = y,
+        ["width"] = width,
+        ["height"] = height,
+        ["text"] = text,
+        ["isToggle"] = isToggle,
+        ["horizontalAlign"] = horizontalTextAlign,
+        ["verticalAlign"] = verticalTextAlign,
+        ["target"] = target,
+        ["args"] = args,
+        ["frameColor"] = frameColor,
+        ["innerColor"] = innerColor,
+        ["pressedColor"] = pressedColor,
+        ["activeColor"] = activeColor,
+        ["textColor"] = textColor,
+        ["isPressed"] = false,
+        ["isHeld"] = false,
+        ["isActive"] = false
     }
 
     __buttons[#__buttons + 1] = buttonNew
 end
 
 --- removes all buttons
----@param buttonId string | nil The id you want to delete leave empty if you want to delete all.
-function removeButtons(buttonId)
-    if buttonId == nil then
+---@param tag string | nil The id you want to delete leave empty if you want to delete all.
+function removeButtons(tag)
+    if tag == nil then
         __buttons = {}
     else
         for key = 1, #__buttons do
             local button = __buttons[key]
-            if button["buttonId"] == buttonId then
+            if button["tag"] == tag then
                 __buttons[key] = nil
             end
         end
@@ -78,7 +77,7 @@ function onTickButtons(isPressed, touchX, touchY, buttonId)
         local button = __buttons[key]
 
         if buttonId ~= nil then
-            if button["buttonId"] ~= buttonId then
+            if button["tag"] ~= buttonId then
                 goto continueOnTick
             end
         end
@@ -107,7 +106,11 @@ function onTickButtons(isPressed, touchX, touchY, buttonId)
 
         -- execute if active
         if button["isActive"] then
-            button["target"]()
+            if button["args"] ~= nil then
+                button["target"](table.unpack(button["args"]))
+            else
+                button["target"]()
+            end
 
             -- reset isActive when after one
             if not button["isToggle"] then
@@ -120,13 +123,13 @@ function onTickButtons(isPressed, touchX, touchY, buttonId)
 end
 
 --- Draw all buttons on the specified positions and colors
----@param buttonId string|nil Update just the buttons with this id.
-function onDrawButtons(buttonId)
+---@param tag string|nil Update just the buttons with this id.
+function onDrawButtons(tag)
     for key = 1, #__buttons do
-        button = __buttons[key]
+        local button = __buttons[key]
 
-        if buttonId ~= nil then
-            if button["buttonId"] ~= buttonId then
+        if tag ~= nil then
+            if button["tag"] ~= tag then
                 goto continueOnDraw
             end
         end
