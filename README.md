@@ -15,6 +15,6 @@ The buttons get automatically updated and trigger the target functions of the bu
 <li>Put "onDrawButtons()" in "onDraw()".</li>
 </ul>
 
-<h2>VS Code Extension:</h2>
+<h3>VS Code Extension:</h3>
 https://marketplace.visualstudio.com/items?itemName=NameousChangey.lifeboatapi
 
