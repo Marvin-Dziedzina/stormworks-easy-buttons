@@ -14,8 +14,9 @@ __buttons = {}
 ---@param isToggle boolean | nil = false; If the button should be a push or a toggle button
 ---@param horizontalTextAlign number -1: left; 0: center; 1: right
 ---@param verticalTextAlign number -1: top; 0: center; 1: bottom
+---@param buttonId string | nil If you want to identify this special button. Can also be used on more buttons to identify groups.
 function newButton(x, y, width, height, text, target, frameColor, innerColor, pressedColor, activeColor, textColor,
-                   isToggle, horizontalTextAlign, verticalTextAlign)
+                   isToggle, horizontalTextAlign, verticalTextAlign, buttonId)
     if x == nil or y == nil or width == nil or height == nil or text == nil or target == nil then
         return
     end
@@ -40,6 +41,7 @@ function newButton(x, y, width, height, text, target, frameColor, innerColor, pr
 
     local buttonNew = {
         {
+            ["buttonId"] = buttonId,
             ["x"] = x,
             ["y"] = y,
             ["width"] = width,
@@ -64,12 +66,34 @@ function newButton(x, y, width, height, text, target, frameColor, innerColor, pr
     table.insert(__buttons, buttonNew)
 end
 
+--- removes all buttons
+---@param buttonId string | nil The id you want to delete leave empty if you want to delete all.
+function removeButtons(buttonId)
+    if buttonId == nil then
+        __buttons = {}
+    else
+        for key, button in pairs(__buttons) do
+            button = button[key]
+            if button["buttonId"] == buttonId then
+                table.remove(__buttons, key)
+            end
+        end
+    end
+end
+
 ---@param isPressed boolean If the screen was pressed
 ---@param touchX number The x coordinate in px where the screen got pressed
 ---@param touchY number The y coordinate in px where the screen got pressed
-function onTickButtons(isPressed, touchX, touchY)
+---@param buttonId string|nil Update just the buttons with this id.
+function onTickButtons(isPressed, touchX, touchY, buttonId)
     for key, button in pairs(__buttons) do
         button = button[key]
+
+        if buttonId ~= nil then
+            if button["buttonId"] == buttonId then
+                goto continueOnTick
+            end
+        end
         -- check if button is pressed
         isBtnPressed = isPressed and
             __isPointInRectangle(touchX, touchY, button["x"], button["y"], button["width"], button["height"])
@@ -102,13 +126,23 @@ function onTickButtons(isPressed, touchX, touchY)
                 button["isActive"] = false
             end
         end
+
+        ::continueOnTick::
     end
 end
 
 --- Draw all buttons on the specified positions and colors
-function onDrawButtons()
+---@param buttonId string|nil Update just the buttons with this id.
+function onDrawButtons(buttonId)
     for key, button in pairs(__buttons) do
         button = button[key]
+
+        if buttonId ~= nil then
+            if button["buttonId"] == buttonId then
+                goto continueOnDraw
+            end
+        end
+
         -- button background
         if button["innerColor"] ~= nil then
             -- toggle
@@ -144,6 +178,8 @@ function onDrawButtons()
         screen.setColor(table.unpack(button["textColor"]))
         screen.drawTextBox(button["x"] + 1, button["y"] + 1, button["width"] + 1, button["height"], button["text"],
             button["horizontalAlign"], button["verticalAlign"])
+
+        ::continueOnDraw::
     end
 end
 
