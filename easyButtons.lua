@@ -79,6 +79,7 @@ end
 ---@param touchY number The y coordinate in px where the screen got pressed
 ---@param buttonId string|nil Update just the buttons with this id.
 function onTickButtons(isPressed, touchX, touchY, buttonId)
+    local isBtnPressedReturn = false
     for key = 1, #__buttons do
         local button = __buttons[key]
 
@@ -89,7 +90,7 @@ function onTickButtons(isPressed, touchX, touchY, buttonId)
         end
         -- check if button is pressed
         local isBtnPressed = isPressed and
-            __isPointInRectangle(touchX, touchY, button["x"], button["y"], button["width"], button["height"])
+            isPointInRectangle(touchX, touchY, button["x"], button["y"], button["width"], button["height"])
         button["isPressed"] = isBtnPressed
 
         -- check if button pressed
@@ -122,10 +123,13 @@ function onTickButtons(isPressed, touchX, touchY, buttonId)
             if not button["isToggle"] then
                 button["isActive"] = false
             end
+
+            isBtnPressedReturn = true
         end
 
         ::continueOnTick::
     end
+    return isBtnPressedReturn
 end
 
 --- Draw all buttons on the specified positions and colors
@@ -180,7 +184,7 @@ function onDrawButtons(tag)
     end
 end
 
--- private functions
-function __isPointInRectangle(x, y, rectX, rectY, rectW, rectH)
+-- Return true if point is in rect when not return false
+function isPointInRectangle(x, y, rectX, rectY, rectW, rectH)
     return x > rectX and y > rectY and x < rectX + rectW and y < rectY + rectH
 end
