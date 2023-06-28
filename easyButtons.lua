@@ -19,8 +19,13 @@ local __buttons = {}
 function newButton(x, y, width, height, text, target, args, frameColor, innerColor, pressedColor, activeColor, textColor,
                    isToggle, horizontalTextAlign, verticalTextAlign, tag)
     if x == nil or y == nil or width == nil or height == nil or text == nil or target == nil then
-        return
+        return 1
     end
+
+    x = math.floor(x)
+    y = math.floor(y)
+    width = math.floor(width)
+    height = math.floor(height)
 
     frameColor = frameColor or { 255, 255, 255 }
     textColor = textColor or { 255, 255, 255 }
@@ -51,6 +56,7 @@ function newButton(x, y, width, height, text, target, args, frameColor, innerCol
     }
 
     __buttons[#__buttons + 1] = buttonNew
+    return 0
 end
 
 --- removes all buttons
