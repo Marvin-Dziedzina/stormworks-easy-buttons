@@ -77,14 +77,14 @@ end
 ---@param isPressed boolean If the screen was pressed
 ---@param touchX number The x coordinate in px where the screen got pressed
 ---@param touchY number The y coordinate in px where the screen got pressed
----@param buttonId string|nil Update just the buttons with this id.
-function onTickButtons(isPressed, touchX, touchY, buttonId)
+---@param tag string|nil Update just the buttons with this id.
+function onTickButtons(isPressed, touchX, touchY, tag)
     local isBtnPressedReturn = false
     for key = 1, #__buttons do
         local button = __buttons[key]
 
-        if buttonId ~= nil then
-            if button["tag"] ~= buttonId then
+        if tag ~= nil then
+            if button["tag"] ~= tag then
                 goto continueOnTick
             end
         end
