@@ -1,20 +1,21 @@
 local __buttons = {}
 
----@param x number The left upper coordinate in px
----@param y number The left upper coordinate in px
----@param width number The width of the button
----@param height number The height of the button
----@param text string The text of the button
----@param target function The function that should get executed if clicked or toggled
----@param args table|nil Input a table with the parameters in right order. Example: {246, 900}
----@param frameColor table = {255, 255, 255}; RGB or RGBA colors in a table
----@param innerColor table | nil RGB or RGBA colors in a table
----@param pressedColor table | nil RGB or RGBA colors in a table just for push button
----@param activeColor table | nil RGB or RGBA colors in a table just for toggle button
----@param textColor table = {255, 255, 255}; RGB or RGBA colors in a table
----@param isToggle boolean | nil = false; If the button should be a push or a toggle button
----@param horizontalTextAlign number -1: left; 0: center; 1: right
----@param verticalTextAlign number -1: top; 0: center; 1: bottom
+--- Use this function to create new buttons.
+---@param x number The left upper coordinate in px.
+---@param y number The left upper coordinate in px.
+---@param width number The width of the button.
+---@param height number The height of the button.
+---@param text string The text of the button.
+---@param horizontalTextAlign number -1: left; 0: center; 1: right.
+---@param verticalTextAlign number -1: top; 0: center; 1: bottom.
+---@param target function The function that should get executed if clicked or toggled.
+---@param args table|nil Input a table with the parameters in right order. Example: {246, 900}.
+---@param frameColor table = {255, 255, 255}; RGB or RGBA colors in a table.
+---@param innerColor table | nil RGB or RGBA colors in a table.
+---@param pressedColor table | nil RGB or RGBA colors in a table just for push button.
+---@param activeColor table | nil RGB or RGBA colors in a table just for toggle button.
+---@param textColor table = {255, 255, 255}; RGB or RGBA colors in a table.
+---@param isToggle boolean | nil = false; If the button should be a push or a toggle button.
 ---@param tag string | nil If you want to identify this special button. Can also be used on more buttons to identify groups.
 function newButton(x, y, width, height, text, target, args, frameColor, innerColor, pressedColor, activeColor, textColor,
                    isToggle, horizontalTextAlign, verticalTextAlign, tag)
@@ -59,7 +60,7 @@ function newButton(x, y, width, height, text, target, args, frameColor, innerCol
     return true
 end
 
---- removes all buttons
+--- This function removes all buttons if nil as argument or all buttons with the tag you want.
 ---@param tag string | nil The id you want to delete leave empty if you want to delete all.
 function removeButtons(tag)
     if tag == nil then
@@ -74,12 +75,16 @@ function removeButtons(tag)
     end
 end
 
----@param isPressed boolean If the screen was pressed
----@param touchX number The x coordinate in px where the screen got pressed
----@param touchY number The y coordinate in px where the screen got pressed
+--- Put this in your onTick function. This calculates all presses and returns of each button.
+---@param isPressed boolean If the screen was pressed.
+---@param touchX number The x coordinate in px where the screen got pressed.
+---@param touchY number The y coordinate in px where the screen got pressed.
 ---@param tag string|nil Update just the buttons with this id.
+---@return boolean isPressOnBtn If the touch position is over at least one button.
+---@return boolean isBtnActivated If the press activated at least one button.
 function onTickButtons(isPressed, touchX, touchY, tag)
-    local isBtnPressedReturn = false
+    local isPressOnBtn = false
+    local isBtnActivated = false
     for key = 1, #__buttons do
         local button = __buttons[key]
 
@@ -124,15 +129,19 @@ function onTickButtons(isPressed, touchX, touchY, tag)
                 button["isActive"] = false
             end
 
-            isBtnPressedReturn = true
+            isBtnActivated = true
+        end
+
+        if isBtnPressed then
+            isPressOnBtn = true
         end
 
         ::continueOnTick::
     end
-    return isBtnPressedReturn
+    return isPressOnBtn, isBtnActivated
 end
 
---- Draw all buttons on the specified positions and colors
+--- Put this function in your onDraw function. This will draw all buttons on their specified places.
 ---@param tag string|nil Update just the buttons with this id.
 function onDrawButtons(tag)
     for key = 1, #__buttons do
