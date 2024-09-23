@@ -1,20 +1,21 @@
 # Stormworks-Easy-Buttons
-Use with Stormworks Lua with LifeBoatAPI in VS Code
+This module for Stormworks Lua makes creating buttons on screens very easy. You can create push or toggle buttons. The buttons will trigger your specified functions. Use tags to easily distinguish between buttons.
 
-This module for Stormworks Lua creates easy and clean buttons.
-The button can be a push or a toggle button.
-The buttons get automatically updated and trigger the target functions of the button.
+Use newButton(x, y, width, height, text, target, args, frameColor, innerColor, pressedColor, activeColor, textColor, isToggle, horizontalTextAlign, verticalTextAlign, tag) to create a new button.
+Use removeButtons(tag) to remove a button from the screen.
 
-<h2>Setup:</h2>
-<ul>
-<li>Download file.</li>
-<li>Put it in your project directory.</li>
-<li>Use "require("easyButtons")" to add into your project.</li>
-<li>Create a new button with "newButton(x, y, width, height, text, target, frameColor, innerColor, pressedColor, activeColor, textColor, isToggle, horizontalTextAlign, verticalTextAlign)".</li>
-<li>Put "onTickButtons(isPressed, touchX, touchY)" with your screen touch input into "onTick()".</li>
-<li>Put "onDrawButtons()" in "onDraw()".</li>
-</ul>
+This script also contains the standard isPointInRectangle(x, y, rectX, rectY, rectW, rectH) function for checking if a point is in a rectangle.
 
-<h3>VS Code Extension:</h3>
+Use with the "Stormworks Lua with LifeBoatAPI" extension in VS Code for best usage experience.
+
+## Setup:
+- Download file.
+- Put it in your project directory.
+- Use "require("easyButtons")" to add into your project.
+- Create a new button with "newButton(x, y, width, height, text, target, frameColor, innerColor, pressedColor, activeColor, textColor, isToggle, horizontalTextAlign, verticalTextAlign)".
+- Put "onTickButtons(isPressed, touchX, touchY)" with your screen touch input into "onTick()".
+- Put "onDrawButtons()" in "onDraw()".
+
+### VS Code Extension:
 https://marketplace.visualstudio.com/items?itemName=NameousChangey.lifeboatapi
 
