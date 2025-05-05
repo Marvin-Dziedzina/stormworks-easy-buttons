@@ -1,21 +1,16 @@
 local __buttons = {}
 
-local screenSetColor = screen.setColor
-local screenDrawRectF = screen.drawRectF
-local screenDrawRect = screen.drawRect
-local screenDrawTextBox = screen.drawTextBox
-
 local t = true
 local f = false
 
 --- Use this function to create new buttons.
----@param x unsigned The left upper coordinate in px.
----@param y unsigned The left upper coordinate in px.
----@param width unsigned The width of the button in px.
----@param height unsigned The height of the button in px.
+---@param x number The left upper coordinate in px.
+---@param y number The left upper coordinate in px.
+---@param width number The width of the button in px.
+---@param height number The height of the button in px.
 ---@param text string The text that is displayed on the button.
----@param horizontalTextAlign integer | nil = 0; -1: left; 0: center; 1: right.
----@param verticalTextAlign integer | nil = 0; -1: top; 0: center; 1: bottom.
+---@param horizontalTextAlign number | nil = 0; -1: left; 0: center; 1: right.
+---@param verticalTextAlign number | nil = 0; -1: top; 0: center; 1: bottom.
 ---@param target function The function that should get executed if clicked or toggled.
 ---@param args table | nil The arguments to the target function. Input a table with the parameters in right order. Example: {246, 900}.
 ---@param frameColor table | nil = {255, 255, 255}; RGB or RGBA colors in a table.
@@ -23,33 +18,33 @@ local f = false
 ---@param pressedColor table | nil RGB or RGBA colors in a table just for push button.
 ---@param activeColor table | nil RGB or RGBA colors in a table just for toggle button.
 ---@param textColor table | nil = {255, 255, 255}; RGB or RGBA colors in a table.
----@param toggled boolean | nil = false; If the button should be a push or a toggle button.
+---@param toggle boolean | nil = false; If the button should be a push or a toggle button.
 ---@param tags table<string> | nil If you want to identify this special button. Can also be used on more buttons to identify groups. If `nil` this button will always be active and displayed.
 ---@return boolean isSuccessful If the operation was successful.
 function newButton(x, y, width, height, text, target, args, frameColor, innerColor, pressedColor, activeColor, textColor,
-                   toggled, horizontalTextAlign, verticalTextAlign, tags)
+                   toggle, horizontalTextAlign, verticalTextAlign, tags)
     if not (x and y and width and height and target) then return f end
 
     __buttons[#__buttons + 1] = {
         tags = tags or {},
         x = x,
         y = y,
-        w = width,
-        h = height,
-        txt = text,
-        toggled = toggled or f,
+        width = width,
+        height = height,
+        text = text,
+        toggle = toggle or f,
         horizAlign = horizontalTextAlign or 0,
         vertAlign = verticalTextAlign or 0,
-        trgt = target,
+        target = target,
         args = args,
-        frmClr = frameColor or { 255, 255, 255 },
-        inrClr = innerColor,
-        prsdClr = pressedColor,
-        actvClr = activeColor,
-        txtClr = textColor or { 255, 255, 255 },
-        prsd = f,
+        frameColor = frameColor or { 255, 255, 255 },
+        innerColor = innerColor,
+        pressedColor = pressedColor,
+        activeColor = activeColor,
+        textColor = textColor or { 255, 255, 255 },
+        pressed = f,
         held = f,
-        actv = f
+        active = f
     }
 
     return t
@@ -88,18 +83,18 @@ function onTickButtons(isPressed, touchX, touchY, tags)
     local function updateButton(btn)
         -- get button press status
         local pressed = isPressed and
-            isPointInRectangle(touchX, touchY, btn.x, btn.y, btn.w, btn.h)
-        btn.prsd = pressed
+            isPointInRectangle(touchX, touchY, btn.x, btn.y, btn.width, btn.height)
+        btn.pressed = pressed
 
         -- check if button pressed
         -- just execute when button is freshly pushed
         local held = btn.held
         if pressed and not held then
             -- check if toggle.
-            if btn.toggled then
-                btn.actv = not btn.actv
+            if btn.toggle then
+                btn.active = not btn.active
             else
-                btn.actv = t
+                btn.active = t
             end
             held = t
         elseif not pressed and held then
@@ -108,16 +103,16 @@ function onTickButtons(isPressed, touchX, touchY, tags)
         end
 
         -- execute if active
-        if btn.actv then
+        if btn.active then
             if btn.args ~= nil then
-                btn.trgt(table.unpack(btn.args))
+                btn.target(table.unpack(btn.args))
             else
-                btn.trgt()
+                btn.target()
             end
 
-            -- reset actv if a push button
-            if not btn.toggled then
-                btn.actv = f
+            -- reset active if a push button
+            if not btn.toggle then
+                btn.active = f
             end
 
             isBtnActivated = t
@@ -149,47 +144,48 @@ function onDrawButtons(tags)
     tags = tags or {}
 
     local function drawButton(btn)
-        local innerColor = btn.inrClr
+        local innerColor = btn.innerColor
         -- button background
         -- toggle
-        if btn.toggled then
-            local active = btn.actv
+        if btn.toggle then
+            local active = btn.active
             if active then
-                local activeColor = btn.actvClr
+                local activeColor = btn.activeColor
                 if activeColor then
-                    screenSetColor(table.unpack(activeColor))
+                    screen.setColor(table.unpack(activeColor))
                 end
-            elseif not active and innerColor then
-                screenSetColor(table.unpack(innerColor))
+            elseif innerColor then
+                screen.setColor(table.unpack(innerColor))
             end
         else
             -- button background
             -- push
-            local isPressed = btn.prsd
+            local isPressed = btn.pressed
             if isPressed then
                 -- check if pressed color exists and apply it
-                local pressedColor = btn.prsdClr
+                local pressedColor = btn.pressedColor
                 if pressedColor ~= nil then
-                    screenSetColor(table.unpack(pressedColor))
-                else
-                    screenSetColor(table.unpack(innerColor))
+                    screen.setColor(table.unpack(pressedColor))
+                elseif innerColor then
+                    screen.setColor(table.unpack(innerColor))
                 end
-            elseif not isPressed and innerColor then
+            elseif innerColor then
                 -- inactive
-                screenSetColor(table.unpack(innerColor))
+                screen.setColor(table.unpack(innerColor))
             end
         end
 
-        local x, y, w, h = btn.x, btn.y, btn.w, btn.h
-        screenDrawRectF(x, y, w, h)
+        local x, y, w, h = btn.x, btn.y, btn.width, btn.height
+        -- button background
+        screen.drawRectF(x, y, w, h)
 
         -- button frame
-        screenSetColor(table.unpack(btn.frmClr))
-        screenDrawRect(x, y, w, h)
+        screen.setColor(table.unpack(btn.frameColor))
+        screen.drawRect(x, y, w, h)
 
         -- button text
-        screenSetColor(table.unpack(btn.txtClr))
-        screenDrawTextBox(x + 1, y + 1, w + 1, h, btn.txt,
+        screen.setColor(table.unpack(btn.textColor))
+        screen.drawTextBox(x + 1, y + 1, w + 1, h, btn.text,
             btn.horizAlign, btn.vertAlign)
     end
 
