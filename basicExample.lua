@@ -49,8 +49,9 @@ end
 local startup = true
 function onTick()
     if startup then
-        newButton(4, 4, 10, 10, "P", testBtn, nil, { 255, 255, 255 }, nil, nil, nil, { 255, 0, 0 }, nil, nil, nil, nil)
-        newButton(15, 15, 10, 10, "T", testBtn, nil, nil, nil, nil, nil, nil, true)
+        newButton(4, 4, 10, 10, "P", testBtn, nil, { 255, 255, 255 }, nil, nil, nil, { 255, 0, 0 }, nil, nil, nil,
+            { "foo" })
+        newButton(15, 15, 10, 10, "T", testBtn, nil, nil, nil, nil, nil, nil, true, nil, nil, { "bar" })
     end
 
     local isPressed = input.getBool(1)
@@ -63,6 +64,7 @@ function onDraw()
     onDrawButtons()
 
     if drawRect then
+        screen.setColor(255, 0, 0)
         screen.drawRectF(0, 0, 3, 3)
         drawRect = false
     end

@@ -1,8 +1,5 @@
 local __buttons = {}
 
-local t = true
-local f = false
-
 --- Use this function to create new buttons.
 ---@param x number The left upper coordinate in px.
 ---@param y number The left upper coordinate in px.
@@ -23,7 +20,7 @@ local f = false
 ---@return boolean isSuccessful If the operation was successful.
 function newButton(x, y, width, height, text, target, args, frameColor, innerColor, pressedColor, activeColor, textColor,
                    toggle, horizontalTextAlign, verticalTextAlign, tags)
-    if not (x and y and width and height and target) then return f end
+    if not (x and y and width and height and target) then return false end
 
     __buttons[#__buttons + 1] = {
         tags = tags or {},
@@ -32,7 +29,7 @@ function newButton(x, y, width, height, text, target, args, frameColor, innerCol
         width = width,
         height = height,
         text = text,
-        toggle = toggle or f,
+        toggle = toggle or false,
         horizAlign = horizontalTextAlign or 0,
         vertAlign = verticalTextAlign or 0,
         target = target,
@@ -42,12 +39,12 @@ function newButton(x, y, width, height, text, target, args, frameColor, innerCol
         pressedColor = pressedColor,
         activeColor = activeColor,
         textColor = textColor or { 255, 255, 255 },
-        pressed = f,
-        held = f,
-        active = f
+        pressed = false,
+        held = false,
+        active = false,
     }
 
-    return t
+    return false
 end
 
 --- This function removes all buttons if nil as argument or all buttons with the tag specified.
@@ -78,7 +75,7 @@ end
 function onTickButtons(isPressed, touchX, touchY, tags)
     tags = tags or {}
 
-    local isPressOnBtn, isBtnActivated = f, f
+    local isPressOnBtn, isBtnActivated = false, false
 
     local function updateButton(btn)
         -- get button press status
@@ -88,22 +85,22 @@ function onTickButtons(isPressed, touchX, touchY, tags)
 
         -- check if button pressed
         -- just execute when button is freshly pushed
-        local held = btn.held
-        if pressed and not held then
+        if pressed and not btn.held then
             -- check if toggle.
             if btn.toggle then
                 btn.active = not btn.active
             else
-                btn.active = t
+                btn.active = true
             end
-            held = t
-        elseif not pressed and held then
+            btn.held = true
+        elseif not pressed and btn.held then
             -- check if button released
-            held = f
+            btn.held = false
         end
 
         -- execute if active
         if btn.active then
+            -- execute target
             if btn.args ~= nil then
                 btn.target(table.unpack(btn.args))
             else
@@ -112,14 +109,14 @@ function onTickButtons(isPressed, touchX, touchY, tags)
 
             -- reset active if a push button
             if not btn.toggle then
-                btn.active = f
+                btn.active = false
             end
 
-            isBtnActivated = t
+            isBtnActivated = true
         end
 
         if pressed then
-            isPressOnBtn = t
+            isPressOnBtn = true
         end
     end
 
@@ -148,44 +145,43 @@ function onDrawButtons(tags)
         -- button background
         -- toggle
         if btn.toggle then
-            local active = btn.active
-            if active then
-                local activeColor = btn.activeColor
-                if activeColor then
-                    screen.setColor(table.unpack(activeColor))
+            if btn.active then
+                if btn.activeColor then
+                    screen.setColor(table.unpack(btn.activeColor))
                 end
             elseif innerColor then
                 screen.setColor(table.unpack(innerColor))
+            else
+                screen.setColor(255, 255, 255, 100)
             end
         else
             -- button background
             -- push
-            local isPressed = btn.pressed
-            if isPressed then
+            if btn.pressed then
                 -- check if pressed color exists and apply it
-                local pressedColor = btn.pressedColor
-                if pressedColor ~= nil then
-                    screen.setColor(table.unpack(pressedColor))
+                if btn.pressedColor ~= nil then
+                    screen.setColor(table.unpack(btn.pressedColor))
                 elseif innerColor then
                     screen.setColor(table.unpack(innerColor))
                 end
             elseif innerColor then
                 -- inactive
                 screen.setColor(table.unpack(innerColor))
+            else
+                screen.setColor(255, 255, 255, 100)
             end
         end
 
-        local x, y, w, h = btn.x, btn.y, btn.width, btn.height
         -- button background
-        screen.drawRectF(x, y, w, h)
+        screen.drawRectF(btn.x, btn.y, btn.width, btn.height)
 
         -- button frame
         screen.setColor(table.unpack(btn.frameColor))
-        screen.drawRect(x, y, w, h)
+        screen.drawRect(btn.x, btn.y, btn.width, btn.height)
 
         -- button text
         screen.setColor(table.unpack(btn.textColor))
-        screen.drawTextBox(x + 1, y + 1, w + 1, h, btn.text,
+        screen.drawTextBox(btn.x + 1, btn.y + 1, btn.width + 1, btn.height, btn.text,
             btn.horizAlign, btn.vertAlign)
     end
 
@@ -208,7 +204,7 @@ end
 ---@return boolean | nil contains If `table1` contains at least one element of `table2`.
 function tableContainsValueFromTable(table1, table2)
     for i = 1, #table2 do
-        if tableContainsValue(table1, table2[i]) then return t end
+        if tableContainsValue(table1, table2[i]) then return true end
     end
 end
 
@@ -219,7 +215,7 @@ end
 ---@return boolean | nil contains If `table` contains `value`.
 function tableContainsValue(table, value)
     for i = 1, #table do
-        if table[i] == value then return t end
+        if table[i] == value then return true end
     end
 end
 
