@@ -44,7 +44,7 @@ function newButton(x, y, width, height, text, target, args, frameColor, innerCol
         active = false,
     }
 
-    return false
+    return true
 end
 
 --- This function removes all buttons if nil as argument or all buttons with the tag specified.
